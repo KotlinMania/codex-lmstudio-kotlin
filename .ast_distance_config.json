@@ -1,0 +1,22 @@
+{
+  "type": "port",
+  "name": "codex-lmstudio-kotlin",
+  "source": {
+    "path": "tmp/codex-lmstudio/src",
+    "lang": "rust"
+  },
+  "target": {
+    "path": "src/commonMain/kotlin/io/github/kotlinmania/codex/lmstudio",
+    "lang": "kotlin"
+  },
+  "checks": {
+    "deep": true,
+    "missing": true,
+    "todos": true,
+    "lint": true
+  },
+  "reexport_modules": [
+    "mod.rs",
+    "lib.rs"
+  ]
+}

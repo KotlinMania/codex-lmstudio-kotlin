@@ -1,0 +1,39 @@
+codex-lmstudio-kotlin
+=====================
+
+A Kotlin Multiplatform port of the `codex-rs/lmstudio/` crate from the
+openai/codex repository — the LM Studio OSS provider client used by
+`codex-cli`.
+
+The upstream `codex-rs` is dual-licensed Apache-2.0 OR MIT, copyright
+OpenAI and the codex contributors. The Kotlin translation here is a
+derivative work, distributed under the same dual Apache-2.0 OR MIT
+terms. All algorithmic and structural design credit — the
+LM-Studio-server reachability check, the `lms`-CLI `find_lms` lookup
+strategy, the `download_model` / `load_model` flows, the test layout
+using sandbox-network-disabled env-gated mocks — belongs to the
+upstream contributors.
+
+Vendored Rust source is fetched into `tmp/codex-lmstudio/` by
+`tools/fetch-rust-source.sh` and is not tracked in this repo
+(see `.gitignore`). The Kotlin port lives at
+`src/commonMain/kotlin/io/github/kotlinmania/codex/lmstudio/`. Each
+ported `.kt` file carries a `// port-lint:` header pointing at the
+specific Rust source path it was translated from.
+
+Upstream:
+  Repo:    https://github.com/openai/codex
+  Path:    codex-rs/lmstudio
+  License: Apache-2.0 OR MIT
+
+Kotlin port:
+  Maintainer: Sydney Renee <sydney@solace.ofharmony.ai>
+  Fork:       https://github.com/KotlinMania/codex-lmstudio-kotlin
+  License:    LICENSE-APACHE OR LICENSE-MIT (your choice; matches upstream)
+
+Translation rules — see CLAUDE.md and AGENTS.md. The short version:
+line-by-line transliteration; `reqwest::Client` is replaced by
+`io.ktor.client.HttpClient`; `tokio::test` becomes
+`kotlinx-coroutines-test`'s `runTest`; `serde_json::Value` becomes
+`kotlinx.serialization.json.JsonElement`; `std::process::Command` for
+the `lms get` invocation becomes a platform-native suspend wrapper.

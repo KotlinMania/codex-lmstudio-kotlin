@@ -1,0 +1,16 @@
+.gradle/
+build/
+.idea/
+*.iml
+.kotlin/
+local.properties
+kotlin-js-store/*
+!kotlin-js-store/yarn.lock
+!kotlin-js-store/wasm/
+!kotlin-js-store/wasm/yarn.lock
+node_modules/
+
+# Vendored upstream Rust source — fetched by tools/fetch-rust-source.sh.
+tmp/
+
+.DS_Store
