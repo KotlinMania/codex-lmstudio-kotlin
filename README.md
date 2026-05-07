@@ -6,7 +6,7 @@ LM Studio OSS provider used by `codex-cli`.
 
 ## Status
 
-Skeleton. The upstream Rust source is the oracle; see
+Initial Kotlin Multiplatform port. The upstream Rust source is the oracle; see
 [`AGENTS.md`](./AGENTS.md) and [`CLAUDE.md`](./CLAUDE.md) for porting
 rules.
 
@@ -24,19 +24,24 @@ That populates `tmp/codex-lmstudio/`.
 ## Build
 
 ```bash
-./gradlew compileKotlinMacosArm64
-./gradlew macosArm64Test
+./gradlew jsBrowserTest jsNodeTest linuxX64Test wasmJsBrowserTest wasmJsNodeTest
+./gradlew compileKotlinIosArm64 compileKotlinIosSimulatorArm64 compileKotlinMacosArm64 iosSimulatorArm64Test macosArm64Test assembleCodexLMStudioXCFramework -PenableIosSimulatorTests=true
+./gradlew mingwX64Test
 ```
 
-CI builds for macOS arm64, Linux x64, and Windows mingwX64
-(see `.github/workflows/ci.yml`). LM Studio itself is desktop-only,
-so iOS, JS, and WasmJs targets are intentionally not included.
+CI follows the same target shape as `starlark-kotlin`: Linux/Android/JS/WASM,
+macOS arm64/iOS simulator arm64/Swift XCFramework, and Windows.
 
 ## Targets
 
 - macosArm64
 - linuxX64
 - mingwX64
+- android
+- iosArm64
+- iosSimulatorArm64
+- js
+- wasmJs
 
 ## Coordinates
 
