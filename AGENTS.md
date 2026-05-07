@@ -54,7 +54,8 @@ it for review. NOTICE at the project root carries long-form attribution.
 This is Kotlin Multiplatform with native, JS, Wasm targets. Don't import
 `kotlin.jvm.*`, `java.*`, or `javax.*` from `commonMain`. Use kotlinx
 libraries (kotlinx-coroutines, kotlinx-serialization, kotlinx-io,
-kotlinx-datetime) and Ktor for HTTP.
+kotlinx-datetime) and Ktor for HTTP only while the corresponding Rust-crate
+Kotlin ports do not expose a usable API.
 
 ### 5. No `@Suppress`, no warnings-as-errors bypass
 
@@ -189,6 +190,55 @@ The Kotlin port should mirror those tests with `ktor-client-mock` in
 `commonTest` and respect the same env-var skip.
 
 ## External dependencies
+
+Always review both `tmp/codex-lmstudio/Cargo.toml` and `PORT_REPORT.md`
+before changing dependencies. `PORT_REPORT.md` captures cross-repo Rust
+`use` edges; `Cargo.toml` captures direct crate dependencies that may need
+their own Kotlin ports even when they are not listed in the outbound table.
+
+The upstream Rust crate currently depends on:
+
+- `codex-core`
+- `reqwest`
+- `serde_json`
+- `tokio`
+- `tracing`
+- `which`
+- `wiremock` for tests
+
+The current Kotlin source may use direct Kotlin Multiplatform equivalents
+only as a bootstrap bridge while those `*-kotlin` repos are scaffold-only or
+missing the specific surface this crate needs. Do not wire a sibling port
+just because the directory exists; if it contains only `.gitkeep` files or
+does not expose the needed Rust-shaped symbols, depending on it would just
+move the stub boundary into another repo.
+
+When a dependency port becomes real and published, migrate this repo to that
+port in the same change that verifies the full CI matrix. The expected
+migrations are:
+
+- `reqwest` → `io.github.kotlinmania:reqwest-kotlin` for `Client`,
+  request builders, responses, status handling, timeouts, and JSON response
+  decoding.
+- `serde_json` → `io.github.kotlinmania:serde-json-kotlin` for JSON values,
+  object construction, parsing, and typed extraction.
+- `tokio` → `io.github.kotlinmania:tokio-kotlin` for background task spawn
+  and process execution if that port provides the needed runtime/process
+  surface; otherwise keep using the established coroutine mapping until it
+  does.
+- `tracing` → `io.github.kotlinmania:tracing-kotlin` for `info`/`warn`
+  events; remove local no-op/drop behavior once a portable tracing facade
+  exists.
+- `which` → `io.github.kotlinmania:which-kotlin` for locating `lms` on
+  `PATH`; remove the local `PATH` scanner once the port supports the same
+  targets.
+- `wiremock` → `io.github.kotlinmania:wiremock-kotlin` for tests once it can
+  replace the current Ktor mock coverage.
+
+Prefer published Maven artifacts for these ports. If a port is only available
+as a local checkout, do not silently add an ad hoc composite build; make the
+workflow shape explicit and verify that publish still has a clean dependency
+story.
 
 This port depends on a small surface from the still-monolithic
 `codex-kotlin` project:
