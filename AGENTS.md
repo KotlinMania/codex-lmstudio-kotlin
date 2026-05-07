@@ -54,8 +54,10 @@ it for review. NOTICE at the project root carries long-form attribution.
 This is Kotlin Multiplatform with native, JS, Wasm targets. Don't import
 `kotlin.jvm.*`, `java.*`, or `javax.*` from `commonMain`. Use kotlinx
 libraries (kotlinx-coroutines, kotlinx-serialization, kotlinx-io,
-kotlinx-datetime) and Ktor for HTTP only while the corresponding Rust-crate
-Kotlin ports do not expose a usable API.
+kotlinx-datetime) only where they are the established translation for a
+Rust standard-library facility. Do not replace a Cargo dependency with an
+unrelated Kotlin library when that dependency already has a `*-kotlin`
+porting repo.
 
 ### 5. No `@Suppress`, no warnings-as-errors bypass
 
@@ -179,15 +181,15 @@ From `src/lib.rs`:
 
 From `src/client.rs`:
 
-- `LMStudioClient` — async client wrapping a Ktor HTTP client and the
+- `LMStudioClient` — async client wrapping a `reqwest::Client` and the
   base URL of the LM Studio server. Methods: `try_from_provider`,
   `check_server`, `load_model`, `fetch_models`, `download_model`,
   `find_lms` (and `find_lms_with_home_dir`).
 
 The Rust crate's tests are network-dependent and use `wiremock` plus an
 env-gated sandbox-disabled check (`CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR`).
-The Kotlin port should mirror those tests with `ktor-client-mock` in
-`commonTest` and respect the same env-var skip.
+The Kotlin port should mirror those tests through the `wiremock-kotlin`
+port once that surface exists, and respect the same env-var skip.
 
 ## External dependencies
 
@@ -206,34 +208,38 @@ The upstream Rust crate currently depends on:
 - `which`
 - `wiremock` for tests
 
-The current Kotlin source may use direct Kotlin Multiplatform equivalents
-only as a bootstrap bridge while those `*-kotlin` repos are scaffold-only or
-missing the specific surface this crate needs. Do not wire a sibling port
-just because the directory exists; if it contains only `.gitkeep` files or
-does not expose the needed Rust-shaped symbols, depending on it would just
-move the stub boundary into another repo.
+These dependency repos already exist:
 
-When a dependency port becomes real and published, migrate this repo to that
-port in the same change that verifies the full CI matrix. The expected
-migrations are:
+- `../reqwest-kotlin`
+- `../serde-json-kotlin`
+- `../tokio-kotlin`
+- `../tracing-kotlin`
+- `../which-kotlin`
+- `../wiremock-kotlin`
 
-- `reqwest` → `io.github.kotlinmania:reqwest-kotlin` for `Client`,
-  request builders, responses, status handling, timeouts, and JSON response
-  decoding.
-- `serde_json` → `io.github.kotlinmania:serde-json-kotlin` for JSON values,
-  object construction, parsing, and typed extraction.
-- `tokio` → `io.github.kotlinmania:tokio-kotlin` for background task spawn
-  and process execution if that port provides the needed runtime/process
-  surface; otherwise keep using the established coroutine mapping until it
-  does.
-- `tracing` → `io.github.kotlinmania:tracing-kotlin` for `info`/`warn`
-  events; remove local no-op/drop behavior once a portable tracing facade
-  exists.
-- `which` → `io.github.kotlinmania:which-kotlin` for locating `lms` on
-  `PATH`; remove the local `PATH` scanner once the port supports the same
-  targets.
-- `wiremock` → `io.github.kotlinmania:wiremock-kotlin` for tests once it can
-  replace the current Ktor mock coverage.
+If one of those repos is still scaffold-only or missing the surface this
+crate needs, port the required Rust files there first. Do **not** create a
+local replacement here with Ktor, kotlinx serialization JSON, a hand-rolled
+`PATH` scanner, or coroutine/logging helpers just to keep this repo building.
+That moves implementation away from the Cargo graph and makes the port
+unreviewable against the Rust source.
+
+The minimum dependency surfaces needed by `codex-lmstudio` are:
+
+- `reqwest`: `Client`, `Client::builder`, `ClientBuilder::connect_timeout`,
+  `ClientBuilder::build`, `Client::new`, request builders, `send`,
+  `Response::status`, and JSON response decoding.
+- `serde_json`: `Value`, `json!` object construction, `Value["data"]`,
+  `Value["id"]`, `as_array`, `as_str`, and `to_string`.
+- `tokio`: `spawn` for the background model-load task.
+- `tracing`: `info!` and `warn!` events.
+- `which`: `which("lms")`.
+- `wiremock`: `MockServer`, `Mock`, method/path matchers, and
+  `ResponseTemplate` for the tests.
+
+Migrate this repo to the published `io.github.kotlinmania:*` artifacts as
+the dependency ports gain those Rust-shaped APIs, and verify the full CI
+matrix in the same change.
 
 Prefer published Maven artifacts for these ports. If a port is only available
 as a local checkout, do not silently add an ad hoc composite build; make the
@@ -247,11 +253,11 @@ This port depends on a small surface from the still-monolithic
 - `CODEX_SANDBOX_NETWORK_DISABLED_ENV_VAR` (env var name for the
   test-skip check)
 
-Until `codex-kotlin` publishes these as a Maven artifact, the porter
-should define a minimal local interface (e.g. `LmstudioConfig` with
-just the `baseUrl: String` field) and let downstream consumers wire
-the real `Config` to it. Do **not** vendor unrelated codex-core types
-to satisfy the dependency.
+Until `codex-kotlin` publishes these as a Maven artifact, the porter may
+define a minimal local bridge for the exact Rust-used shape:
+`Config.modelProviders[LMSTUDIO_OSS_PROVIDER_ID].baseUrl` plus
+`Config.model`. Do not collapse that into a direct `baseUrl` field, and
+do **not** vendor unrelated codex-core types to satisfy the dependency.
 
 ## Verification
 
