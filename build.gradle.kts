@@ -35,6 +35,7 @@ kotlin {
 
     compilerOptions {
         allWarningsAsErrors.set(true)
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
     sourceSets.all {
@@ -107,12 +108,6 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
                 implementation("io.ktor:ktor-client-mock:3.4.3")
-            }
-        }
-
-        val nativeMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-curl:3.4.3")
             }
         }
     }
