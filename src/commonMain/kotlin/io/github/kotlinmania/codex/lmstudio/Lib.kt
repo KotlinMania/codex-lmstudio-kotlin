@@ -29,16 +29,13 @@ public suspend fun ensureOssReady(config: LmstudioConfig) {
         }
     } catch (_: Throwable) {
         // Not fatal; higher layers may still proceed and surface errors later.
-        // Upstream calls `tracing::warn!` here; with no portable logging
-        // facade the closest faithful behavior is to discard the error.
     }
 
-    // Load the model in the background.
+    // Load the model in the background
     GlobalScope.launch(Dispatchers.Default) {
         try {
             lmstudioClient.loadModel(model)
         } catch (_: Throwable) {
-            // Upstream `tracing::warn!`; discard without a logger.
         }
     }
 }
