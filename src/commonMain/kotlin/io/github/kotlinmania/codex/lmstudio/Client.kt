@@ -137,7 +137,6 @@ public class LMStudioClient internal constructor(
         }
 
         if (response.status.isSuccess()) {
-            // tracing::info!("Successfully loaded model '{model}'") — drop without a logger.
         } else {
             throw IOException("Failed to load model: ${response.status.value}")
         }
@@ -180,7 +179,6 @@ public class LMStudioClient internal constructor(
         if (exitCode != 0) {
             throw IOException("Model download failed with exit code: $exitCode")
         }
-        // tracing::info!("Successfully downloaded model '{model}'") — drop without a logger.
     }
 }
 
