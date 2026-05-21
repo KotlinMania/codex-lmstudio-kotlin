@@ -1,4 +1,10 @@
-import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.api.tasks.ClasspathNormalizer
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.testing.AbstractTestTask
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.process.ExecOperations
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
@@ -18,53 +24,74 @@ plugins {
 group = "io.github.kotlinmania"
 version = "0.1.0"
 
-val androidSdkDir: String? =
-    providers.environmentVariable("ANDROID_SDK_ROOT").orNull
-        ?: providers.environmentVariable("ANDROID_HOME").orNull
-
-if (androidSdkDir != null && file(androidSdkDir).exists()) {
-    val localProperties = rootProject.file("local.properties")
-    if (!localProperties.exists()) {
-        val sdkDirPropertyValue = file(androidSdkDir).absolutePath.replace("\\", "/")
-        localProperties.writeText("sdk.dir=$sdkDirPropertyValue")
-    }
-}
+// The Android Gradle plugin resolves the SDK location while Gradle builds the
+// task graph — before any task executes — so a project-local Android SDK must
+// already be installed by the time configuration runs. setup-android-sdk.sh
+// installs the SDK into this repo's own .android-sdk/ and writes
+// local.properties to point there. It runs unconditionally on every
+// configuration: the script itself is idempotent (an already-installed SDK is
+// a fast no-op), but there is deliberately no Gradle-side condition that could
+// skip the install, and no fallback to a sibling repo's SDK.
+serviceOf<ExecOperations>().exec { commandLine("bash", "./setup-android-sdk.sh") }
 
 kotlin {
     applyDefaultHierarchyTemplate()
+
+    sourceSets.all {
+        languageSettings.optIn("kotlin.time.ExperimentalTime")
+        languageSettings.optIn("kotlin.concurrent.atomics.ExperimentalAtomicApi")
+        languageSettings.optIn("kotlin.ExperimentalUnsignedTypes")
+    }
 
     compilerOptions {
         allWarningsAsErrors.set(true)
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
-    sourceSets.all {
-        languageSettings.optIn("kotlin.time.ExperimentalTime")
-        languageSettings.optIn("kotlin.concurrent.atomics.ExperimentalAtomicApi")
-    }
-
     val xcf = XCFramework("CodexLMStudio")
 
     macosArm64 {
-        binaries.framework {
-            baseName = "CodexLMStudio"
-            xcf.add(this)
-        }
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
     }
-    linuxX64()
-    mingwX64()
     iosArm64 {
-        binaries.framework {
-            baseName = "CodexLMStudio"
-            xcf.add(this)
-        }
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
     }
     iosSimulatorArm64 {
-        binaries.framework {
-            baseName = "CodexLMStudio"
-            xcf.add(this)
-        }
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
     }
+    iosX64 {
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+    }
+
+    tvosArm64 {
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+    }
+    tvosSimulatorArm64 {
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+    }
+
+    watchosArm32 {
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+    }
+    watchosArm64 {
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+    }
+    watchosDeviceArm64 {
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+    }
+    watchosSimulatorArm64 {
+        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+    }
+
+    linuxX64()
+    linuxArm64()
+    mingwX64()
+
+    androidNativeArm32()
+    androidNativeArm64()
+    androidNativeX86()
+    androidNativeX64()
+
     js {
         browser()
         nodejs()
@@ -72,6 +99,10 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
+        nodejs()
+    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmWasi {
         nodejs()
     }
 
@@ -90,6 +121,8 @@ kotlin {
         }
     }
 
+    jvm()
+
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -100,10 +133,8 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:3.5.0")
                 implementation("io.ktor:ktor-client-content-negotiation:3.5.0")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:3.5.0")
-
             }
         }
-
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
@@ -111,16 +142,35 @@ kotlin {
                 implementation("io.ktor:ktor-client-mock:3.5.0")
             }
         }
+
     }
     jvmToolchain(21)
 }
 
+tasks.withType<AbstractTestTask>().configureEach {
+    testLogging {
+        events(
+            TestLogEvent.STARTED,
+            TestLogEvent.PASSED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.FAILED,
+            TestLogEvent.STANDARD_OUT,
+            TestLogEvent.STANDARD_ERROR,
+        )
+        exceptionFormat = TestExceptionFormat.FULL
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+        showStandardStreams = true
+    }
+}
+
 rootProject.extensions.configure<NodeJsEnvSpec>("kotlinNodeJsSpec") {
-    version.set("22.22.2")
+    version.set("24.15.0")
 }
 
 rootProject.extensions.configure<WasmNodeJsEnvSpec>("kotlinWasmNodeJsSpec") {
-    version.set("22.22.2")
+    version.set("24.15.0")
 }
 
 rootProject.extensions.configure<YarnRootEnvSpec>("kotlinYarnSpec") {
@@ -133,11 +183,12 @@ rootProject.extensions.configure<WasmYarnRootEnvSpec>("kotlinWasmYarnSpec") {
 
 rootProject.extensions.configure<YarnRootExtension>("kotlinYarn") {
     resolution("diff", "8.0.3")
-    resolution("serialize-javascript", "7.0.5")
-    resolution("webpack", "5.106.2")
-
     resolution("**/diff", "8.0.3")
+    resolution("fast-uri", "3.1.2")
+    resolution("**/fast-uri", "3.1.2")
+    resolution("serialize-javascript", "7.0.5")
     resolution("**/serialize-javascript", "7.0.5")
+    resolution("webpack", "5.106.2")
     resolution("**/webpack", "5.106.2")
     resolution("follow-redirects", "1.16.0")
     resolution("**/follow-redirects", "1.16.0")
@@ -145,8 +196,8 @@ rootProject.extensions.configure<YarnRootExtension>("kotlinYarn") {
     resolution("**/lodash", "4.18.1")
     resolution("ajv", "8.20.0")
     resolution("**/ajv", "8.20.0")
-    resolution("brace-expansion", "5.0.5")
-    resolution("**/brace-expansion", "5.0.5")
+    resolution("brace-expansion", "5.0.6")
+    resolution("**/brace-expansion", "5.0.6")
     resolution("flatted", "3.4.2")
     resolution("**/flatted", "3.4.2")
     resolution("minimatch", "10.2.5")
@@ -157,6 +208,8 @@ rootProject.extensions.configure<YarnRootExtension>("kotlinYarn") {
     resolution("**/qs", "6.15.1")
     resolution("socket.io-parser", "4.2.6")
     resolution("**/socket.io-parser", "4.2.6")
+    resolution("ws", "8.20.1")
+    resolution("**/ws", "8.20.1")
 }
 
 
@@ -171,30 +224,15 @@ rootProject.extensions.configure<NodeJsRootExtension>("kotlinNodeJs") {
     versions.kotlinWebHelpers.version = "3.1.0"
 }
 
-tasks.register("test") {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Runs the Kotlin Multiplatform test aggregate."
-    dependsOn("allTests")
-}
-
 mavenPublishing {
     publishToMavenCentral()
-    val signingConfigured =
-        providers.gradleProperty("signingInMemoryKey").isPresent ||
-            providers.gradleProperty("signing.keyId").isPresent ||
-            providers.environmentVariable("SIGNING_KEY").isPresent
-    if (signingConfigured) {
-        signAllPublications()
-    }
+    signAllPublications()
 
     coordinates(group.toString(), "codex-lmstudio-kotlin", version.toString())
 
     pom {
         name.set("codex-lmstudio-kotlin")
-        description.set(
-            "Kotlin Multiplatform port of the codex-rs lmstudio crate (LM Studio OSS provider " +
-                "client used by codex-cli), translated line-by-line from codex-rs/lmstudio/src/."
-        )
+        description.set("Kotlin Multiplatform port of the codex-rs lmstudio crate (LM Studio OSS provider client used by codex-cli), translated line-by-line from codex-rs/lmstudio/src/.")
         inceptionYear.set("2026")
         url.set("https://github.com/KotlinMania/codex-lmstudio-kotlin")
 
@@ -202,11 +240,6 @@ mavenPublishing {
             license {
                 name.set("Apache-2.0")
                 url.set("https://opensource.org/licenses/Apache-2.0")
-                distribution.set("repo")
-            }
-            license {
-                name.set("MIT")
-                url.set("https://opensource.org/licenses/MIT")
                 distribution.set("repo")
             }
         }
@@ -226,4 +259,62 @@ mavenPublishing {
             developerConnection.set("scm:git:ssh://github.com/KotlinMania/codex-lmstudio-kotlin.git")
         }
     }
+}
+
+tasks.register<Exec>("setupAndroidSdk") {
+    group = "setup"
+    description = "Downloads and configures the project-local Android SDK."
+    commandLine("./setup-android-sdk.sh")
+}
+
+tasks.register("test") {
+    group = "verification"
+    description =
+        "Runs the host-portable test suite (macOS + JS + WasmJS + Android unit). " +
+        "Non-host native targets (mingwX64, linuxX64) only run on their own host."
+
+    val defaultTestTasks = listOf(
+        "macosArm64Test",
+        "jvmTest",
+        "jsNodeTest",
+        "wasmJsNodeTest",
+        "compileAndroidMain",
+        "assembleUnitTest",
+    )
+
+    dependsOn(defaultTestTasks.mapNotNull { taskName -> tasks.findByName(taskName) })
+}
+
+// The generated Wasm-WASI Node test runner cannot see the filesystem unless
+// the project directory is preopened. Patch the runner before wasmWasiNodeTest.
+val patchWasmWasiNodePreopens = tasks.register("patchWasmWasiNodePreopens") {
+    description = "Preopen the project directory for the generated Wasm-WASI Node test runner."
+    group = "verification"
+    dependsOn("compileTestDevelopmentExecutableKotlinWasmWasi")
+    outputs.upToDateWhen { false }
+
+    doLast {
+        val runnerFile = layout.buildDirectory.file(
+            "compileSync/wasmWasi/test/testDevelopmentExecutable/kotlin/${rootProject.name}-test.mjs",
+        ).get().asFile
+        if (!runnerFile.exists()) {
+            // No Wasm-WASI test runner was generated (the repo has no
+            // wasmWasi test sources), so there is nothing to preopen.
+            return@doLast
+        }
+        val text = runnerFile.readText()
+        val withCwdImport = text.replace(
+            "import { argv, env } from 'node:process';",
+            "import { argv, env, cwd } from 'node:process';",
+        )
+        val patched = withCwdImport.replace(
+            "const wasi = new WASI({ version: 'preview1', args: argv, env, });",
+            "const wasi = new WASI({ version: 'preview1', args: argv, env, preopens: { '/': cwd() }, });",
+        )
+        runnerFile.writeText(patched)
+    }
+}
+
+tasks.named("wasmWasiNodeTest") {
+    dependsOn(patchWasmWasiNodePreopens)
 }
