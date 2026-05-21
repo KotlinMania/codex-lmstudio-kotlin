@@ -37,7 +37,7 @@ class ClientTest {
                 headers = headersOf(HttpHeaders.ContentType, "application/json"),
             )
         }
-        val client = LMStudioClient(HttpClient(engine), "http://example.test")
+        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
         val models = client.fetchModels()
         assertTrue(models.contains("openai/gpt-oss-20b"))
     }
@@ -53,7 +53,7 @@ class ClientTest {
                 headers = headersOf(HttpHeaders.ContentType, "application/json"),
             )
         }
-        val client = LMStudioClient(HttpClient(engine), "http://example.test")
+        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
         val err = assertFailsWith<IOException> { client.fetchModels() }
         assertTrue(err.message?.contains("No 'data' array in response") == true)
     }
@@ -65,7 +65,7 @@ class ClientTest {
         val engine = MockEngine {
             respondError(HttpStatusCode.InternalServerError)
         }
-        val client = LMStudioClient(HttpClient(engine), "http://example.test")
+        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
         val err = assertFailsWith<IOException> { client.fetchModels() }
         assertTrue(err.message?.contains("Failed to fetch models: 500") == true)
     }
@@ -75,7 +75,7 @@ class ClientTest {
         if (networkDisabled()) return@runTest
 
         val engine = MockEngine { respondOk() }
-        val client = LMStudioClient(HttpClient(engine), "http://example.test")
+        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
         client.checkServer()
     }
 
@@ -86,7 +86,7 @@ class ClientTest {
         val engine = MockEngine {
             respondError(HttpStatusCode.NotFound)
         }
-        val client = LMStudioClient(HttpClient(engine), "http://example.test")
+        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
         val err = assertFailsWith<IOException> { client.checkServer() }
         assertTrue(err.message?.contains("Server returned error: 404") == true)
     }
@@ -111,10 +111,16 @@ class ClientTest {
 
     @Test
     fun testFromHostRoot() {
-        val a = LMStudioClient(HttpClient(MockEngine { respondOk() }), "http://localhost:1234")
+        val a = LMStudioClient.fromHostRootForTesting(
+            HttpClient(MockEngine { respondOk() }),
+            "http://localhost:1234",
+        )
         assertEquals("http://localhost:1234", a.baseUrl)
 
-        val b = LMStudioClient(HttpClient(MockEngine { respondOk() }), "https://example.com:8080/api")
+        val b = LMStudioClient.fromHostRootForTesting(
+            HttpClient(MockEngine { respondOk() }),
+            "https://example.com:8080/api",
+        )
         assertEquals("https://example.com:8080/api", b.baseUrl)
     }
 }

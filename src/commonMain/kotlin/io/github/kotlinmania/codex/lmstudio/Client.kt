@@ -53,6 +53,15 @@ public class LMStudioClient internal constructor(
             )
         }
 
+        /**
+         * Test-only variant of `fromHostRoot` that wires an externally-supplied
+         * Ktor engine. Mirrors the way upstream tests pass a `wiremock::MockServer`
+         * URI directly to `from_host_root` while letting Kotlin tests stub the
+         * transport via `MockEngine`.
+         */
+        internal fun fromHostRootForTesting(client: HttpClient, hostRoot: String): LMStudioClient =
+            LMStudioClient(client = client, baseUrl = hostRoot)
+
         // Find lms, checking fallback paths if not in PATH
         internal fun findLms(): String = findLmsWithHomeDir(null)
 
@@ -171,7 +180,7 @@ public class LMStudioClient internal constructor(
         }
     }
 
-    public fun downloadModel(model: String) {
+    public suspend fun downloadModel(model: String) {
         val lms = findLms()
         printToStderr("Downloading model: $model")
 
