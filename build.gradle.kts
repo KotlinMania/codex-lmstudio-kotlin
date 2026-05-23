@@ -209,10 +209,18 @@ kotlin {
         binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
     }
     iosSimulatorArm64 {
-        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+        binaries.framework {
+            baseName = "CodexLMStudio"
+            isStatic = true
+            xcf.add(this)
+        }
     }
     iosX64 {
-        binaries.framework { baseName = "CodexLMStudio"; xcf.add(this) }
+        binaries.framework {
+            baseName = "CodexLMStudio"
+            isStatic = true
+            xcf.add(this)
+        }
     }
 
     tvosArm64 {
