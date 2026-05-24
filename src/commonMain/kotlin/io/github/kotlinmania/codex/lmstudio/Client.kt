@@ -1,4 +1,4 @@
-// port-lint: source src/client.rs
+// port-lint: source client.rs
 
 package io.github.kotlinmania.codex.lmstudio
 
@@ -54,9 +54,9 @@ public class LMStudioClient internal constructor(
         }
 
         /**
-         * Test-only variant of `fromHostRoot` that wires an externally-supplied
-         * Ktor engine. Mirrors the way upstream tests pass a `wiremock::MockServer`
-         * URI directly to `from_host_root` while letting Kotlin tests stub the
+         * Test-only variant of [fromHostRoot] that wires an externally supplied
+         * Ktor engine. Upstream tests pass a mock server URI directly to the
+         * low-level constructor; Kotlin tests keep that shape while stubbing the
          * transport via `MockEngine`.
          */
         internal fun fromHostRootForTesting(client: HttpClient, hostRoot: String): LMStudioClient =
@@ -66,7 +66,7 @@ public class LMStudioClient internal constructor(
         internal fun findLms(): String = findLmsWithHomeDir(null)
 
         internal fun findLmsWithHomeDir(homeDir: String?): String {
-            // First try 'lms' in PATH
+            // First try `lms` in PATH.
             if (whichLms() != null) {
                 return "lms"
             }
@@ -126,7 +126,7 @@ public class LMStudioClient internal constructor(
         }
     }
 
-    // Load a model by sending an empty request with max_tokens 1
+    // Load a model by sending an empty request with a one-token response cap.
     public suspend fun loadModel(model: String) {
         val url = "${baseUrl.trimEnd('/')}/responses"
 

@@ -1,4 +1,4 @@
-// port-lint: source src/client.rs (tests)
+// port-lint: source client.rs
 package io.github.kotlinmania.codex.lmstudio
 
 import io.ktor.client.HttpClient

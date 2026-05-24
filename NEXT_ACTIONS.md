@@ -1,52 +1,60 @@
-# Next Actions
+# Immediate Actions - High-Value Files
 
-Skeleton in place. Outstanding work:
+Based on AST analysis, here are the concrete next steps.
 
-## 1. Define a minimal `LmstudioConfig` interface
+## Summary
 
-`codex-kotlin` does not publish `Config`/`ModelProviderInfo` as a
-separate Maven artifact. To keep this library standalone, define:
+- **Files Present:** 2/2 (100.0%)
+- **Function parity:** 16/17 matched (target 22) — 94.1%
+- **Class/type parity:** 1/1 matched (target 3) — 100.0%
+- **Combined symbol parity:** 17/18 matched (target 25) — 94.4%
+- **Average inline-code cosine:** 0.64 (function body across 2 matched files)
+- **Average documentation cosine:** 0.77 (doc text across 2 matched files)
+- **Cheat-zeroed Files:** 0
+- **Critical Issues:** 1 files with <0.60 function similarity
 
-```kotlin
-package io.github.kotlinmania.codex.lmstudio
+## Priority 1: Fix Incomplete High-Dependency Files
 
-interface LmstudioConfig {
-    val baseUrl: String?
-    val model: String
-}
-```
+No incomplete high-dependency files detected.
 
-Downstream callers (codex-kotlin) implement this against their own
-`Config.modelProviders[LMSTUDIO_OSS_PROVIDER_ID]`.
+## Priority 2: Port Missing High-Value Files
 
-## 2. Port `src/lib.rs` → `Lib.kt`
+Critical missing files (>10 dependencies):
 
-- `DEFAULT_OSS_MODEL = "openai/gpt-oss-20b"`
-- `suspend fun ensureOssReady(config: LmstudioConfig)` — reachability,
-  list, download, background-load.
+No missing high-value files detected.
 
-## 3. Port `src/client.rs` → `Client.kt`
+## Detailed Work Items
 
-- `LMStudioClient` data class wrapping `HttpClient` + `baseUrl`.
-- `tryFromProvider`, `checkServer`, `loadModel`, `fetchModels`,
-  `downloadModel`, `findLms` (and `findLmsWithHomeDir`).
+Every matched file is listed below with function and type symbol parity.
 
-## 4. Port the test suite to `commonTest`
+### 1. client
 
-- Replace `wiremock` with `ktor-client-mock` `MockEngine`.
-- Replace `tokio::test` with `runTest`.
-- Preserve the `CODEX_SANDBOX_NETWORK_DISABLED` env-var skip semantics
-  (read via `platform.posix.getenv` in `nativeTest`, or via a
-  cross-platform expect-actual `getEnvOrNull`).
+- **Target:** `lmstudio.Client`
+- **Similarity:** 0.48
+- **Dependents:** 0
+- **Priority Score:** 11705.2
+- **Functions:** 15/16 matched (target 21)
+- **Missing functions:** `from_host_root`
+- **Types:** 1/1 matched (target 3)
+- **Missing types:** _none_
+- **Tests:** 8/9 matched
 
-## 5. Wire up downstream
+### 2. lib
 
-Once published:
+- **Target:** `lmstudio.Lib`
+- **Similarity:** 0.79
+- **Dependents:** 0
+- **Priority Score:** 102.1
+- **Functions:** 1/1 matched
+- **Missing functions:** _none_
+- **Types:** 0/0 matched
+- **Missing types:** _none_
 
-```kotlin
-// in codex-kotlin/build.gradle.kts
-implementation("io.github.kotlinmania:codex-lmstudio-kotlin:0.1.0")
-```
+## Success Criteria
 
-Then port `codex-rs/common/src/oss.rs` (currently blocked on this
-crate). It dispatches between the lmstudio and ollama OSS providers.
+For each file to be considered "complete":
+- **Similarity ≥ 0.85** (Excellent threshold)
+- All public APIs ported
+- All tests ported
+- Documentation ported
+- port-lint header present
