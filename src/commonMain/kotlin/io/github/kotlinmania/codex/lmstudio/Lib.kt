@@ -1,4 +1,4 @@
-// port-lint: source src/lib.rs
+// port-lint: source lib.rs
 package io.github.kotlinmania.codex.lmstudio
 
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -27,15 +27,17 @@ public suspend fun ensureOssReady(config: LmstudioConfig) {
         if (models.none { it == model }) {
             lmstudioClient.downloadModel(model)
         }
-    } catch (_: Throwable) {
+    } catch (e: Throwable) {
         // Not fatal; higher layers may still proceed and surface errors later.
+        printToStderr("Failed to query local models from LM Studio: ${e.message ?: e::class.simpleName}.")
     }
 
-    // Load the model in the background
+    // Load the model in the background.
     GlobalScope.launch(Dispatchers.Default) {
         try {
             lmstudioClient.loadModel(model)
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            printToStderr("Failed to load model $model: ${e.message ?: e::class.simpleName}")
         }
     }
 }
