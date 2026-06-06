@@ -352,10 +352,6 @@ kotlin {
         }
     }
 }
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
-}
-
 // ============================================================================
 // Test logging
 // ============================================================================
@@ -423,6 +419,7 @@ tasks.named("check") {
     // to the explicit all-target build set below.
     dependsOn("testAndroidHostTest")
     // Swift Export smoke test is required; it must not self-skip.
+    dependsOn("hostTests")
     dependsOn("swiftExportSmokeTest")
 }
 
