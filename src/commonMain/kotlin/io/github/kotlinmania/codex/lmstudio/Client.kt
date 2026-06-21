@@ -30,15 +30,17 @@ public class LMStudioClient internal constructor(
 ) {
     public companion object {
         public suspend fun tryFromProvider(config: LmstudioConfig): LMStudioClient {
-            val baseUrl = config.baseUrl
-                ?: throw IOException("oss provider must have a base_url")
+            val baseUrl =
+                config.baseUrl
+                    ?: throw IOException("oss provider must have a base_url")
 
             val client = buildHttpClient()
 
-            val lmstudioClient = LMStudioClient(
-                client = client,
-                baseUrl = baseUrl,
-            )
+            val lmstudioClient =
+                LMStudioClient(
+                    client = client,
+                    baseUrl = baseUrl,
+                )
             lmstudioClient.checkServer()
 
             return lmstudioClient
@@ -72,18 +74,21 @@ public class LMStudioClient internal constructor(
             }
 
             // Platform-specific fallback paths
-            val home: String = when (homeDir) {
-                null -> when (platformFamily()) {
-                    LmstudioPlatformFamily.WINDOWS -> envVar("USERPROFILE").orEmpty()
-                    else -> envVar("HOME").orEmpty()
+            val home: String =
+                when (homeDir) {
+                    null ->
+                        when (platformFamily()) {
+                            LmstudioPlatformFamily.WINDOWS -> envVar("USERPROFILE").orEmpty()
+                            else -> envVar("HOME").orEmpty()
+                        }
+                    else -> homeDir
                 }
-                else -> homeDir
-            }
 
-            val fallbackPath: String = when (platformFamily()) {
-                LmstudioPlatformFamily.WINDOWS -> "$home/.lmstudio/bin/lms.exe"
-                else -> "$home/.lmstudio/bin/lms"
-            }
+            val fallbackPath: String =
+                when (platformFamily()) {
+                    LmstudioPlatformFamily.WINDOWS -> "$home/.lmstudio/bin/lms.exe"
+                    else -> "$home/.lmstudio/bin/lms"
+                }
 
             return if (pathExists(fallbackPath)) {
                 fallbackPath
@@ -130,20 +135,22 @@ public class LMStudioClient internal constructor(
     public suspend fun loadModel(model: String) {
         val url = "${baseUrl.trimEnd('/')}/responses"
 
-        val requestBody = buildJsonObject {
-            put("model", model)
-            put("input", "")
-            put("max_output_tokens", 1)
-        }
-
-        val response: HttpResponse = try {
-            client.post(url) {
-                contentType(ContentType.Application.Json)
-                setBody(requestBody.toString())
+        val requestBody =
+            buildJsonObject {
+                put("model", model)
+                put("input", "")
+                put("max_output_tokens", 1)
             }
-        } catch (e: Throwable) {
-            throw IOException("Request failed: ${e.message ?: e::class.simpleName}")
-        }
+
+        val response: HttpResponse =
+            try {
+                client.post(url) {
+                    contentType(ContentType.Application.Json)
+                    setBody(requestBody.toString())
+                }
+            } catch (e: Throwable) {
+                throw IOException("Request failed: ${e.message ?: e::class.simpleName}")
+            }
 
         if (response.status.isSuccess()) {
         } else {
@@ -154,23 +161,27 @@ public class LMStudioClient internal constructor(
     // Return the list of models available on the LM Studio server.
     public suspend fun fetchModels(): List<String> {
         val url = "${baseUrl.trimEnd('/')}/models"
-        val response: HttpResponse = try {
-            client.get(url)
-        } catch (e: Throwable) {
-            throw IOException("Request failed: ${e.message ?: e::class.simpleName}")
-        }
+        val response: HttpResponse =
+            try {
+                client.get(url)
+            } catch (e: Throwable) {
+                throw IOException("Request failed: ${e.message ?: e::class.simpleName}")
+            }
 
         if (response.status.isSuccess()) {
             val text = response.bodyAsText()
-            val element = try {
-                Json.parseToJsonElement(text)
-            } catch (e: Throwable) {
-                throw IOException("JSON parse error: ${e.message ?: e::class.simpleName}")
-            }
-            val obj = element as? JsonObject
-                ?: throw IOException("No 'data' array in response")
-            val data = obj["data"] as? JsonArray
-                ?: throw IOException("No 'data' array in response")
+            val element =
+                try {
+                    Json.parseToJsonElement(text)
+                } catch (e: Throwable) {
+                    throw IOException("JSON parse error: ${e.message ?: e::class.simpleName}")
+                }
+            val obj =
+                element as? JsonObject
+                    ?: throw IOException("No 'data' array in response")
+            val data =
+                obj["data"] as? JsonArray
+                    ?: throw IOException("No 'data' array in response")
             return data.mapNotNull { model ->
                 val modelObj = model as? JsonObject ?: return@mapNotNull null
                 (modelObj["id"] as? JsonPrimitive)?.contentOrNull
@@ -191,18 +202,19 @@ public class LMStudioClient internal constructor(
     }
 }
 
-private fun buildHttpClient(): HttpClient {
-    return HttpClient {
+private fun buildHttpClient(): HttpClient =
+    HttpClient {
         install(HttpTimeout) {
             connectTimeoutMillis = 5_000
         }
     }
-}
 
 internal fun sanitizeShellArg(arg: String): String {
-    require(arg.all { ch ->
-        ch.isLetterOrDigit() || ch in "._-/:\\"
-    }) { "Refusing to spawn lms with arg containing shell metacharacters: $arg" }
+    require(
+        arg.all { ch ->
+            ch.isLetterOrDigit() || ch in "._-/:\\"
+        },
+    ) { "Refusing to spawn lms with arg containing shell metacharacters: $arg" }
     return arg
 }
 

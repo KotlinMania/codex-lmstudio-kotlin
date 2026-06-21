@@ -19,9 +19,7 @@ internal actual fun pathExists(path: String): Boolean = access(path, F_OK) == 0
 
 internal actual fun isExecutable(path: String): Boolean = access(path, X_OK) == 0
 
-internal actual fun runLmsGet(lms: String, model: String): Int {
-    throw IOException("Failed to execute '$lms get --yes $model'")
-}
+internal actual fun runLmsGet(lms: String, model: String): Int = throw IOException("Failed to execute '$lms get --yes $model'")
 
 internal actual fun printToStderr(line: String) {
     println(line)

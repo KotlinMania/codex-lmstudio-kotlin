@@ -25,71 +25,80 @@ private fun networkDisabled(): Boolean =
 
 class ClientTest {
     @Test
-    fun testFetchModelsHappyPath() = runTest {
-        if (networkDisabled()) return@runTest
+    fun testFetchModelsHappyPath() =
+        runTest {
+            if (networkDisabled()) return@runTest
 
-        val engine = MockEngine { request ->
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals("/models", request.url.encodedPath)
-            respond(
-                content = """{"data":[{"id":"openai/gpt-oss-20b"}]}""",
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json"),
-            )
+            val engine =
+                MockEngine { request ->
+                    assertEquals(HttpMethod.Get, request.method)
+                    assertEquals("/models", request.url.encodedPath)
+                    respond(
+                        content = """{"data":[{"id":"openai/gpt-oss-20b"}]}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
+            val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
+            val models = client.fetchModels()
+            assertTrue(models.contains("openai/gpt-oss-20b"))
         }
-        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
-        val models = client.fetchModels()
-        assertTrue(models.contains("openai/gpt-oss-20b"))
-    }
 
     @Test
-    fun testFetchModelsNoDataArray() = runTest {
-        if (networkDisabled()) return@runTest
+    fun testFetchModelsNoDataArray() =
+        runTest {
+            if (networkDisabled()) return@runTest
 
-        val engine = MockEngine {
-            respond(
-                content = "{}",
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json"),
-            )
+            val engine =
+                MockEngine {
+                    respond(
+                        content = "{}",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
+            val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
+            val err = assertFailsWith<IOException> { client.fetchModels() }
+            assertTrue(err.message?.contains("No 'data' array in response") == true)
         }
-        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
-        val err = assertFailsWith<IOException> { client.fetchModels() }
-        assertTrue(err.message?.contains("No 'data' array in response") == true)
-    }
 
     @Test
-    fun testFetchModelsServerError() = runTest {
-        if (networkDisabled()) return@runTest
+    fun testFetchModelsServerError() =
+        runTest {
+            if (networkDisabled()) return@runTest
 
-        val engine = MockEngine {
-            respondError(HttpStatusCode.InternalServerError)
+            val engine =
+                MockEngine {
+                    respondError(HttpStatusCode.InternalServerError)
+                }
+            val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
+            val err = assertFailsWith<IOException> { client.fetchModels() }
+            assertTrue(err.message?.contains("Failed to fetch models: 500") == true)
         }
-        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
-        val err = assertFailsWith<IOException> { client.fetchModels() }
-        assertTrue(err.message?.contains("Failed to fetch models: 500") == true)
-    }
 
     @Test
-    fun testCheckServerHappyPath() = runTest {
-        if (networkDisabled()) return@runTest
+    fun testCheckServerHappyPath() =
+        runTest {
+            if (networkDisabled()) return@runTest
 
-        val engine = MockEngine { respondOk() }
-        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
-        client.checkServer()
-    }
+            val engine = MockEngine { respondOk() }
+            val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
+            client.checkServer()
+        }
 
     @Test
-    fun testCheckServerError() = runTest {
-        if (networkDisabled()) return@runTest
+    fun testCheckServerError() =
+        runTest {
+            if (networkDisabled()) return@runTest
 
-        val engine = MockEngine {
-            respondError(HttpStatusCode.NotFound)
+            val engine =
+                MockEngine {
+                    respondError(HttpStatusCode.NotFound)
+                }
+            val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
+            val err = assertFailsWith<IOException> { client.checkServer() }
+            assertTrue(err.message?.contains("Server returned error: 404") == true)
         }
-        val client = LMStudioClient.fromHostRootForTesting(HttpClient(engine), "http://example.test")
-        val err = assertFailsWith<IOException> { client.checkServer() }
-        assertTrue(err.message?.contains("Server returned error: 404") == true)
-    }
 
     @Test
     fun testFindLms() {
@@ -111,16 +120,18 @@ class ClientTest {
 
     @Test
     fun testFromHostRoot() {
-        val a = LMStudioClient.fromHostRootForTesting(
-            HttpClient(MockEngine { respondOk() }),
-            "http://localhost:1234",
-        )
+        val a =
+            LMStudioClient.fromHostRootForTesting(
+                HttpClient(MockEngine { respondOk() }),
+                "http://localhost:1234",
+            )
         assertEquals("http://localhost:1234", a.baseUrl)
 
-        val b = LMStudioClient.fromHostRootForTesting(
-            HttpClient(MockEngine { respondOk() }),
-            "https://example.com:8080/api",
-        )
+        val b =
+            LMStudioClient.fromHostRootForTesting(
+                HttpClient(MockEngine { respondOk() }),
+                "https://example.com:8080/api",
+            )
         assertEquals("https://example.com:8080/api", b.baseUrl)
     }
 }
