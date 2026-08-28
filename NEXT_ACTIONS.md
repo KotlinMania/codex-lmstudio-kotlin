@@ -9,7 +9,7 @@ Based on AST analysis, here are the concrete next steps.
 - **Class/type parity:** 1/1 matched (target 3) — 100.0%
 - **Combined symbol parity:** 17/18 matched (target 25) — 94.4%
 - **Average inline-code cosine:** 0.64 (function body across 2 matched files)
-- **Average documentation cosine:** 0.77 (doc text across 2 matched files)
+- **Average documentation cosine:** 0.80 (doc text across 2 matched files)
 - **Cheat-zeroed Files:** 0
 - **Critical Issues:** 1 files with <0.60 function similarity
 
@@ -58,3 +58,4 @@ For each file to be considered "complete":
 - All tests ported
 - Documentation ported
 - port-lint header present
+
