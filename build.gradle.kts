@@ -88,6 +88,15 @@ val commonBenchmarkDependencyBundle =
             .findBundle(bundleName)
             .orElseThrow { GradleException("Missing libs bundle '$bundleName'") }
     }
+val commonTestBundleName = optionalTrimmedProperty("project.dependencies.commonTestBundle")
+val commonTestDependencyBundle =
+    commonTestBundleName?.let { bundleName ->
+        extensions
+            .getByType(VersionCatalogsExtension::class.java)
+            .named("libs")
+            .findBundle(bundleName)
+            .orElseThrow { GradleException("Missing libs bundle '$bundleName'") }
+    }
 if (benchmarkEnabled && commonBenchmarkDependencyBundle == null) {
     throw GradleException("Feature 'benchmark' requires project.dependencies.commonBenchmarkBundle")
 }
@@ -446,17 +455,11 @@ kotlin {
         nodejs()
     }
 
-    // wasmJs is Stable as of Kotlin 2.2; @OptIn may be removable — verify before dropping on wasmWasi.
+    // wasmJs is Stable as of Kotlin 2.2; @OptIn may be removable — verify before dropping.
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         configureBenchmarkCompilation()
         browser()
-        nodejs()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmWasi {
-        configureBenchmarkCompilation()
         nodejs()
     }
 
@@ -495,6 +498,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+            commonTestDependencyBundle?.let { implementation(it) }
         }
         if (benchmarkEnabled) {
             val commonBenchmark = maybeCreate("commonBenchmark")
@@ -900,13 +904,12 @@ tasks.register("setupAndroidSdk") {
 // mean the target surface drifted and must fail loudly.
 tasks.register("hostTests") {
     group = "verification"
-    description = "Runs the required real test suite (jvm, macosArm64, js, wasmJs, wasmWasi, android host)."
+    description = "Runs the required real test suite (jvm, macosArm64, js, wasmJs, android host)."
     dependsOn(
         "jvmTest",
         "macosArm64Test",
         "jsNodeTest",
         "wasmJsNodeTest",
-        "wasmWasiNodeTest",
         "testAndroidHostTest",
     )
 }
@@ -1036,8 +1039,6 @@ val fullTargetBuildTaskNames =
                 "jsTestClasses",
                 "wasmJsMainClasses",
                 "wasmJsTestClasses",
-                "wasmWasiMainClasses",
-                "wasmWasiTestClasses",
                 "swiftExportSmokeTest",
                 "assemble${frameworkName}XCFramework",
             ),
