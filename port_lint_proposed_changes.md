@@ -1,6 +1,6 @@
 # port-lint Proposed Changes
 
-**Generated:** 2026-05-24
+**Generated:** 2026-08-28
 **Source:** tmp/codex-lmstudio/src
 **Target:** src/commonMain/kotlin/io/github/kotlinmania/codex/lmstudio
 
