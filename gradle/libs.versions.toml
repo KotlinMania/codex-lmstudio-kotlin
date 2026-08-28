@@ -4,6 +4,8 @@ coroutines = "1.11.0"
 serialization = "1.11.0"
 datetime = "0.8.0"
 collectionsImmutable = "0.5.0"
+kotlinxIo = "0.7.0"
+ktor = "3.1.1"
 androidKmp = "9.3.1"
 detekt = "1.23.8"
 ktlint = "14.2.0"
@@ -24,6 +26,10 @@ kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "collectionsImmutable" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIo" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinxBenchmark" }
 
 [bundles]
@@ -33,4 +39,8 @@ codex-lmstudio-commonMain = [
   "kotlinx-serialization-json",
   "kotlinx-datetime",
   "collections-immutable",
+  "kotlinx-io-core",
+  "ktor-client-core",
+  "ktor-client-content-negotiation",
+  "ktor-serialization-kotlinx-json",
 ]
