@@ -7,13 +7,13 @@ let package = Package(
         .macOS(.v14),
     ],
     dependencies: [
-        .package(name: "CodexLMStudio", path: "../build/SPMPackage/macosArm64/Debug")
+        .package(name: "CodexLmstudio", path: "../build/SPMPackage/macosArm64/Debug")
     ],
     targets: [
         .testTarget(
             name: "SwiftTestHarnessTests",
             dependencies: [
-                .product(name: "CodexLMStudioLibrary", package: "CodexLMStudio")
+                .product(name: "CodexLmstudioLibrary", package: "CodexLmstudio")
             ],
             swiftSettings: [
                 .unsafeFlags([
@@ -23,7 +23,7 @@ let package = Package(
             linkerSettings: [
                 .unsafeFlags([
                     "-L", "../build/swift-test",
-                    "-lCodexLMStudio",
+                    "-lCodexLmstudio",
                     "-F", "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
                     "-Xlinker", "-rpath", "-Xlinker", "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
                     "-Xlinker", "-rpath", "-Xlinker", "/Library/Developer/CommandLineTools/Library/Developer/usr/lib",

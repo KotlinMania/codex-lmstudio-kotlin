@@ -1,21 +1,21 @@
 #if canImport(Testing)
 import Testing
-import CodexLMStudio
+import CodexLmstudio
 
 @Suite("CodexLMStudio Swift Export Tests")
 struct CodexLMStudioExportTests {
-    @Test("CodexLMStudio swift module imported cleanly")
+    @Test("CodexLmstudio swift module imported cleanly")
     func testSwiftModuleLoads() throws {
-        #expect(Bool(true), "CodexLMStudio swift module imported cleanly")
+        #expect(Bool(true), "CodexLmstudio swift module imported cleanly")
     }
 }
 #elseif canImport(XCTest)
 import XCTest
-import CodexLMStudio
+import CodexLmstudio
 
 final class CodexLMStudioExportTests: XCTestCase {
     func testSwiftModuleLoads() throws {
-        XCTAssertTrue(true, "CodexLMStudio swift module imported cleanly")
+        XCTAssertTrue(true, "CodexLmstudio swift module imported cleanly")
     }
 }
 #endif
