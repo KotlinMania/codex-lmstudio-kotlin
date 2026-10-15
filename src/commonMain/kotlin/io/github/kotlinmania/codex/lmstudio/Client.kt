@@ -76,12 +76,16 @@ public class LMStudioClient internal constructor(
             // Platform-specific fallback paths
             val home: String =
                 when (homeDir) {
-                    null ->
+                    null -> {
                         when (platformFamily()) {
                             LmstudioPlatformFamily.WINDOWS -> envVar("USERPROFILE").orEmpty()
                             else -> envVar("HOME").orEmpty()
                         }
-                    else -> homeDir
+                    }
+
+                    else -> {
+                        homeDir
+                    }
                 }
 
             val fallbackPath: String =

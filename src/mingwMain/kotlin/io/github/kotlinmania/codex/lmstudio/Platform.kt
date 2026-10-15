@@ -1,4 +1,3 @@
-// port-lint: ignore (platform support for src/client.rs)
 @file:OptIn(ExperimentalForeignApi::class)
 
 package io.github.kotlinmania.codex.lmstudio

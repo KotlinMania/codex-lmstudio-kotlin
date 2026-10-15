@@ -6,7 +6,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-/** Default OSS model to use when `--oss` is passed without an explicit `-m`. */
+/**
+ * Default OSS model to use when `--oss` is passed without an explicit `-m`.
+ */
 public const val DEFAULT_OSS_MODEL: String = "openai/gpt-oss-20b"
 
 /**

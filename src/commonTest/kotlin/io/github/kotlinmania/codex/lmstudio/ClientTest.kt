@@ -118,20 +118,18 @@ class ClientTest {
         }
     }
 
+    private fun fromHostRoot(hostRoot: String): LMStudioClient =
+        LMStudioClient.fromHostRootForTesting(
+            HttpClient(MockEngine { respondOk() }),
+            hostRoot,
+        )
+
     @Test
     fun testFromHostRoot() {
-        val a =
-            LMStudioClient.fromHostRootForTesting(
-                HttpClient(MockEngine { respondOk() }),
-                "http://localhost:1234",
-            )
+        val a = fromHostRoot("http://localhost:1234")
         assertEquals("http://localhost:1234", a.baseUrl)
 
-        val b =
-            LMStudioClient.fromHostRootForTesting(
-                HttpClient(MockEngine { respondOk() }),
-                "https://example.com:8080/api",
-            )
+        val b = fromHostRoot("https://example.com:8080/api")
         assertEquals("https://example.com:8080/api", b.baseUrl)
     }
 }
