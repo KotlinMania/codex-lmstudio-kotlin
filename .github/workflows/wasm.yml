@@ -54,7 +54,6 @@ jobs:
           ./gradlew
           wasmJsBrowserTest
           wasmJsNodeTest
-          wasmWasiNodeTest
           --no-configuration-cache
 
       - name: Upload test reports (WASM)

@@ -7,8 +7,7 @@ LM Studio OSS provider used by `codex-cli`.
 ## Status
 
 Initial Kotlin Multiplatform port. The upstream Rust source is the oracle; see
-[`AGENTS.md`](./AGENTS.md) and [`CLAUDE.md`](./CLAUDE.md) for porting
-rules.
+[`AGENTS.md`](./AGENTS.md) for porting rules.
 
 ## Setup
 

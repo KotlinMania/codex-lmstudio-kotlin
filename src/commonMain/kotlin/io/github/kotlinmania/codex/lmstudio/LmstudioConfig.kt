@@ -1,4 +1,3 @@
-// port-lint: ignore (project-local config surface)
 package io.github.kotlinmania.codex.lmstudio
 
 /**
